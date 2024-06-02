@@ -765,7 +765,7 @@ top50 = Cells(5, 6).Value
 lenom = ActiveWorkbook.Name
 Lepath = ActiveWorkbook.Path
 Workbooks.Open Filename:=Lepath & "\Archives.xls"
-Range("IQ3001:IU3099").Copy
+Range("IQ3001:IU3120").Copy
 Windows(lenom).Activate
 Range("AM8").Select
 ActiveSheet.Paste
@@ -1731,61 +1731,27 @@ Else
         Cells(66, 41).Value = "[/b]"
     End If
 
-' ********************************************************************
-' *** on compare le nom des trois premiers à la liste              ***
-' *** Si le nom fait partie de la liste, on incrémente la valeur   ***
-' *** Sinon on ajoute le nom à la liste et on incrémente           ***_
-' ********************************************************************
-    For i = 1 To 3
-        Nomtop = Cells(72 + i, 18).Value
-        Lignetop = 0
-        For j = 1 To 40
-'           On enlève la couleur verte si il y a eu un nouveau dans la liste la semaine dernière
-            If i = 1 Then
-                Cells(172 + j, 17).Value = ""
-                Cells(172 + j, 20).Value = ""
-                Cells(172 + j, 23).Value = ""
-                Cells(172 + j, 25).Value = ""
-            End If
-            If LCase(Cells(66 + j, 40).Value) = LCase(Nomtop) Then Lignetop = j
-'           Si le nom n'est pas trouvé on met la ligne en vert
-            If Cells(66 + j, 40).Value = "" And Lignetop = 0 Then
-                Cells(172 + j, 17).Value = "[b][Color=Green]"
-                Cells(172 + j, 25).Value = "[/color][/b]"
-                Cells(66 + j, 40).Value = Nomtop
-                Lignetop = 1
-                If i = 1 Then Cells(66 + j, 41).Value = Cells(66 + j, 41).Value + 1
-                Cells(66 + j, 42).Value = Cells(66 + j, 42).Value + 1
-            End If
-'           On incrémente les valeurs sur le nom retrouvé
-            If i = 1 And Lignetop = j Then
-                Cells(66 + j, 41).Value = Cells(66 + j, 41).Value + 1
-                Cells(66 + j, 42).Value = Cells(66 + j, 42).Value + 1
-                Cells(172 + j, 20).Value = "[Color=Green]"
-                Cells(172 + j, 25).Value = "[/color]"
-            End If
-            If i <> 1 And Lignetop = j Then
-                Cells(66 + j, 42).Value = Cells(66 + j, 42).Value + 1
-                Cells(172 + j, 23).Value = "[Color=Green]"
-                Cells(172 + j, 25).Value = "[/color]"
-            End If
-        Next
-    Next
+'   appel de la procédure
+    LongeurPodium = MiseAJourPodium
 
 ' ********************************************************************
 ' ***        on copie le classement dans la zone daffichage        ***
 ' ***   on retrie la liste selon le nombre 1 er / Nombre podium    ***
 ' ********************************************************************
-    Range("AN67:AN106").Copy
+    R = "AN67:AN" & 67 + LongeurPodium
+    Range(R).Copy
     Range("R173").Select
     ActiveSheet.Paste
-    Range("AO67:AO106").Copy
+    R = "AO67:AO" & 67 + LongeurPodium
+    Range(R).Copy
     Range("U173").Select
     ActiveSheet.Paste
-    Range("AP67:AP106").Copy
+    R = "AP67:AP" & 67 + LongeurPodium
+    Range(R).Copy
     Range("X173").Select
     ActiveSheet.Paste
-    Range("Q173:Y212").Select
+    R = "Q173:Y" & 172 + LongeurPodium
+    Range(R).Select
     Selection.Sort Key1:=Range("U173"), Order1:=xlDescending, Key2:=Range( _
         "X173"), Order2:=xlDescending, Header:=xlGuess, OrderCustom:=1, _
         MatchCase:=False, Orientation:=xlTopToBottom, DataOption1:=xlSortNormal, _
@@ -1795,7 +1761,8 @@ Else
 ' *** On sauvegarde les records dans archives            ***
 ' **********************************************************
     Windows(lenom).Activate
-    Range("AM8:AQ106").Select
+    R = "AM8:AQ" & 67 + LongeurPodium
+    Range(R).Select
     Selection.Copy
     Windows("Archives.xls").Activate
     Range("IQ3001").Select
@@ -1818,8 +1785,60 @@ Sub Plage2()
 '
 ' Plage Macro
 ' Macro enregistrée le 11/09/2007 par Yok's
-' Modifiée le 07/01/18 par yok's
-'
-    Range("Q8:AJ260").Copy
+' Modifiée le 02/06/2024 par P01
+    Range("Q8:AJ265").Copy
 End Sub
 
+Function MiseAJourPodium() As String
+    ' ********************************************************************
+    ' *** on compare le nom des trois premiers à la liste              ***
+    ' *** Si le nom fait partie de la liste, on incrémente la valeur   ***
+    ' *** Sinon on ajoute le nom à la liste et on incrémente           ***
+    ' ********************************************************************
+    LignePodiumDebut = 172
+    LigneClassementDebut = 66
+    LongeurPodium = 40
+    'On cherche la fin de la section "Combien de fois meilleur encodeur ? / Combien de fois sur le podium depuis 50ème top 50"
+    Do While Cells(LigneClassementDebut + LongeurPodium, 40).Value <> ""
+        LongeurPodium = LongeurPodium + 1
+    Loop
+
+    For i = 1 To 3
+        Nomtop = Cells(72 + i, 18).Value
+        Lignetop = 0
+        For j = 1 To LongeurPodium
+            ' On enlève la couleur verte si il y a eu un nouveau dans la liste la semaine dernière
+            If i = 1 Then
+                Cells(LignePodiumDebut + j, 17).Value = ""
+                Cells(LignePodiumDebut + j, 20).Value = ""
+                Cells(LignePodiumDebut + j, 23).Value = ""
+                Cells(LignePodiumDebut + j, 25).Value = ""
+            End If
+            If LCase(Cells(LigneClassementDebut + j, 40).Value) = LCase(Nomtop) Then Lignetop = j
+            ' Si le nom n'est pas trouvé on met la ligne en vert
+            If Cells(LigneClassementDebut + j, 40).Value = "" And Lignetop = 0 Then
+                Cells(LignePodiumDebut + j, 17).Value = "[b][Color=Green]"
+                Cells(LignePodiumDebut + j, 25).Value = "[/color][/b]"
+                Cells(LigneClassementDebut + j, 40).Value = Nomtop
+                Lignetop = 1
+                If i = 1 Then
+                    Cells(LigneClassementDebut + j, 41).Value = 1
+                End If
+                Cells(LigneClassementDebut + j, 42).Value = 1
+            End If
+            ' On incrémente les valeurs sur le nom retrouvé
+            If i = 1 And Lignetop = j Then
+                Cells(LigneClassementDebut + j, 41).Value = Cells(LigneClassementDebut + j, 41).Value + 1
+                Cells(LigneClassementDebut + j, 42).Value = Cells(LigneClassementDebut + j, 42).Value + 1
+                Cells(LignePodiumDebut + j, 20).Value = "[Color=Green]"
+                Cells(LignePodiumDebut + j, 25).Value = "[/color]"
+            End If
+            If i <> 1 And Lignetop = j Then
+                Cells(LigneClassementDebut + j, 42).Value = Cells(LigneClassementDebut + j, 42).Value + 1
+                Cells(LignePodiumDebut + j, 23).Value = "[Color=Green]"
+                Cells(LignePodiumDebut + j, 25).Value = "[/color]"
+            End If
+        Next
+    Next
+    MiseAJourPodium = LongeurPodium - 1
+End Function
